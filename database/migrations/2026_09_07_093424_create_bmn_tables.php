@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        // 2. Master Buku PAUDPEDIA
+        // 2. Master Buku PAUDPEDIA (Penting: Harus dibuat sebelum pengajuan_bukus)
         Schema::create('bukus', function (Blueprint $table) {
             $table->id();
             $table->string('judul');
@@ -57,10 +57,12 @@ return new class extends Migration {
         // 5. Modul Pengajuan Buku
         Schema::create('pengajuan_bukus', function (Blueprint $table) {
             $table->id();
+            $table->string('pemohon')->default('Pegawai');
             $table->foreignId('buku_id')->constrained('bukus')->onDelete('cascade');
             $table->integer('jumlah');
             $table->enum('metode', ['ambil', 'kirim']);
-            $table->enum('status', ['diprosos', 'siap_ambil', 'siap_kirim', 'selesai'])->default('diprosos');
+            $table->text('alamat')->nullable();
+            $table->enum('status', ['diproses', 'siap_ambil', 'siap_kirim', 'selesai'])->default('diproses');
             $table->timestamps();
         });
 

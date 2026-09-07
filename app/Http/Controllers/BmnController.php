@@ -167,13 +167,16 @@ class BmnController extends Controller
     }
 
     // --- PENGAJUAN BUKU LOGIC ---
+    // STEP 3: METHOD AJUKANBUKU YANG SUDAH DIPERBARUI
     public function ajukanBuku(Request $request)
     {
         PengajuanBuku::create([
+            'pemohon' => $request->pemohon ?? 'Pegawai',
             'buku_id' => $request->buku_id,
             'jumlah' => $request->jumlah,
             'metode' => $request->metode,
-            'status' => 'diprosos',
+            'alamat' => $request->metode === 'kirim' ? $request->alamat : null,
+            'status' => 'diproses',
         ]);
         return back()->with('success', 'Pengajuan buku terkirim!');
     }
@@ -215,7 +218,7 @@ class BmnController extends Controller
         return back()->with('success', 'Laporan kehilangan di-ACC dan ditutup!');
     }
 
-    // --- DUA METHOD HAPUS DITAROH DI SINI (BAGIAN PALING BAWAH) ---
+    // --- METHOD HAPUS ---
     public function hapusBarang($id)
     {
         Barang::findOrFail($id)->delete();

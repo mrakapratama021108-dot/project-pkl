@@ -98,7 +98,7 @@
                         <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-medium">{{ $masterBarang->count() }} Items</span>
                     </div>
 
-                    @if($role === 'Reviewer (Tim BMN)')
+                   @if($role === 'Reviewer (Tim BMN)' && $pb->status === 'diproses')
                     <form action="{{ route('bmn.barang.tambah') }}" method="POST" class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3 mb-5">
                         @csrf
                         <div class="grid grid-cols-2 gap-3">
@@ -410,39 +410,67 @@
         </div>
         @endif
 
-        {{-- TAB 5: PENGAJUAN BUKU --}}
+        {{-- TAB 5: PENGAJUAN BUKU (STEP 4) --}}
         @if($tab === 'buku')
         <div class="space-y-6 max-w-5xl">
             @if($role === 'Pegawai')
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-4">Form Pengajuan Buku PAUDPEDIA</h2>
-                <form action="{{ route('bmn.buku.ajukan') }}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <form action="{{ route('bmn.buku.ajukan') }}" method="POST" class="space-y-4">
                     @csrf
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Judul Buku</label>
-                        <select name="buku_id" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            @foreach($masterBuku->where('stok', '>', 0) as $bk)
-                                <option value="{{ $bk->id }}">{{ $bk->judul }} (Stok: {{ $bk->stok }})</option>
-                            @endforeach
-                        </select>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Nama Pemohon</label>
+                            <input name="pemohon" value="Budi" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Judul Buku</label>
+                            <select name="buku_id" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                                @foreach($masterBuku->where('stok', '>', 0) as $bk)
+                                    <option value="{{ $bk->id }}">{{ $bk->judul }} (Stok: {{ $bk->stok }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Jumlah Eksemplar</label>
+                            <input type="number" name="jumlah" value="1" min="1" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Metode Pengambilan</label>
+                            <select name="metode" id="metodeBuku" onchange="toggleAlamatInput()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="ambil">Ambil di Kantor</option>
+                                <option value="kirim">Dikirim (COD)</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Jumlah Eksemplar</label>
-                        <input type="number" name="jumlah" value="1" min="1" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+
+                    <!-- Input Alamat (Otomatis Muncul jika COD dipilih) -->
+                    <div id="alamatContainer" class="hidden">
+                        <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Alamat Pengiriman (Khusus COD)</label>
+                        <textarea name="alamat" id="inputAlamat" rows="2" placeholder="Masukkan alamat lengkap tujuan pengiriman..." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
                     </div>
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Metode Pengambilan</label>
-                        <select name="metode" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            <option value="ambil">Ambil di Kantor</option>
-                            <option value="kirim">Dikirim (COD)</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2.5 px-4 rounded-lg shadow-md shadow-blue-600/20 transition-all">
+
+                    <div class="flex justify-end">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2.5 px-6 rounded-lg shadow-md shadow-blue-600/20 transition-all">
                             Ajukan Buku
                         </button>
                     </div>
                 </form>
+
+                <script>
+                    function toggleAlamatInput() {
+                        const metode = document.getElementById('metodeBuku').value;
+                        const container = document.getElementById('alamatContainer');
+                        const input = document.getElementById('inputAlamat');
+                        if (metode === 'kirim') {
+                            container.classList.remove('hidden');
+                            input.setAttribute('required', 'required');
+                        } else {
+                            container.classList.add('hidden');
+                            input.removeAttribute('required');
+                        }
+                    }
+                </script>
             </div>
             @endif
 
@@ -452,8 +480,14 @@
                     @forelse($pengajuanBuku as $pb)
                     <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200 transition-all">
                         <div>
-                            <div class="text-sm font-semibold text-slate-900">{{ $pb->buku->judul }}</div>
-                            <div class="text-xs text-slate-500 mt-0.5">Jumlah: <span class="font-medium text-slate-700">{{ $pb->jumlah }} Eksemplar</span> | Metode: <span class="uppercase font-medium text-slate-700">{{ $pb->metode }}</span></div>
+                            <div class="text-sm font-semibold text-slate-900">{{ $pb->pemohon ?? 'Pegawai' }}</div>
+                            <div class="text-xs text-slate-600 font-medium mt-0.5">Buku: {{ $pb->buku->judul ?? '-' }} ({{ $pb->jumlah }} Eksemplar)</div>
+                            <div class="text-xs text-slate-500 mt-0.5">Metode: <span class="uppercase font-semibold text-blue-600">{{ $pb->metode }}</span></div>
+                            @if($pb->metode === 'kirim' && $pb->alamat)
+                                <div class="text-xs text-slate-500 bg-slate-100 p-2 rounded-md mt-1.5 border border-slate-200/60">
+                                    <strong>Alamat Kirim:</strong> {{ $pb->alamat }}
+                                </div>
+                            @endif
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-slate-200 text-slate-700">
