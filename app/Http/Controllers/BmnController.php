@@ -9,12 +9,13 @@ use App\Models\Perbaikan;
 use App\Models\PengajuanBuku;
 use App\Models\LaporanHilang;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // <-- TAMBAHKAN INI
 
 class BmnController extends Controller
 {
     public function index(Request $request)
     {
-        $role = $request->get('role', 'Pegawai');
+        $role = Auth::user()->role; // <-- UBAH BARIS INI (Ambil role otomatis dari akun login)
         $tab = $request->get('tab', 'master');
 
         $masterBarang = Barang::all();
@@ -82,14 +83,16 @@ class BmnController extends Controller
     {
         $loan = Peminjaman::findOrFail($id);
         
+        // Cek apakah pegawai memiliki pinjaman BARANG yang sama/aktif dan belum dikembalikan
         $punyaPinjamanAktif = Peminjaman::where('pegawai', $loan->pegawai)
+            ->where('barang_id', $loan->barang_id) // Khusus cek barang yang sama
             ->where('status', 'dipinjam')
             ->where('id', '!=', $id)
             ->exists();
 
         $loan->update([
             'status' => $punyaPinjamanAktif ? 'tertahan' : 'menunggu_approval',
-            'catatan' => $punyaPinjamanAktif ? 'Harus kembalikan pinjaman lain dulu' : null,
+            'catatan' => $punyaPinjamanAktif ? 'Masih meminjam unit barang yang sama. Kembalikan terlebih dahulu.' : null,
         ]);
 
         return back()->with('success', 'Peminjaman telah direview!');
@@ -167,7 +170,6 @@ class BmnController extends Controller
     }
 
     // --- PENGAJUAN BUKU LOGIC ---
-    // STEP 3: METHOD AJUKANBUKU YANG SUDAH DIPERBARUI
     public function ajukanBuku(Request $request)
     {
         PengajuanBuku::create([
@@ -193,10 +195,23 @@ class BmnController extends Controller
         return back()->with('success', 'Pengajuan buku diproses!');
     }
 
-    public function selesaikanPengajuanBuku($id)
-    {
-        PengajuanBuku::findOrFail($id)->update(['status' => 'selesai']);
-        return back()->with('success', 'Pengajuan buku selesai!');
+    public function selesaikanPengajuanBuku(Request $request, $id)
+{
+    $request->validate([
+        'foto_resi' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
+
+    $p = PengajuanBuku::findOrFail($id);
+    $data = ['status' => 'selesai'];
+
+    if ($request->hasFile('foto_resi')) {
+        $path = $request->file('foto_resi')->store('resi_buku', 'public');
+        $data['foto_resi'] = $path;
+    }
+
+    $p->update($data);
+
+    return back()->with('success', 'Pengajuan buku diselesaikan dan bukti resi/BAST berhasil diunggah!');
     }
 
     // --- LAPORAN KEHILANGAN LOGIC ---

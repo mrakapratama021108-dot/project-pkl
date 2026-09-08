@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-BMN Dit PAUD - Sistem Inventaris</title>
-    <!-- Tailwind CSS & Inter Font -->
+
+    <!-- ==========================================
+         STYLESHEETS & FONTS
+    =========================================== -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -13,8 +16,12 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex antialiased">
 
-    <!-- Sidebar Modern -->
+    <!-- ==========================================
+         SIDEBAR UTAMA
+    =========================================== -->
     <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 shadow-xl">
+        
+        <!-- Sidebar Brand / Logo -->
         <div class="p-5 border-b border-slate-800 flex items-center gap-3">
             <div class="bg-blue-600 p-2 rounded-lg text-white">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
@@ -25,6 +32,7 @@
             </div>
         </div>
         
+        <!-- Sidebar Navigasi Tab -->
         <nav class="flex-1 p-3 space-y-1">
             @php
                 $tabs = [
@@ -37,7 +45,7 @@
                 ];
             @endphp
             @foreach($tabs as $key => $item)
-                <a href="?tab={{ $key }}&role={{ $role }}" 
+                <a href="?tab={{ $key }}" 
                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all {{ $tab === $key ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200' }}">
                     <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $item['icon'] }}"></path></svg>
                     {{ $item['label'] }}
@@ -45,26 +53,29 @@
             @endforeach
         </nav>
 
-        <!-- Role Switcher Card -->
+        <!-- Profile User & Tombol Logout -->
         <div class="p-4 border-t border-slate-800">
-            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/50">
-                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">Akses Role Saat Ini</label>
-                <form method="GET" action="/" id="roleForm">
-                    <input type="hidden" name="tab" value="{{ $tab }}">
-                    <select name="role" onchange="document.getElementById('roleForm').submit()" class="w-full border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-slate-900 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="Pegawai" {{ $role === 'Pegawai' ? 'selected' : '' }}>Pegawai</option>
-                        <option value="Reviewer (Tim BMN)" {{ $role === 'Reviewer (Tim BMN)' ? 'selected' : '' }}>Reviewer (Tim BMN)</option>
-                        <option value="Approver (Kasubag TU)" {{ $role === 'Approver (Kasubag TU)' ? 'selected' : '' }}>Approver (Kasubag TU)</option>
-                    </select>
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/50 flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-bold text-white">{{ Auth::user()->name }}</div>
+                    <div class="text-[10px] text-blue-400 font-semibold mt-0.5">{{ Auth::user()->role }}</div>
+                </div>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button title="Keluar" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 p-1.5 rounded-lg border border-rose-500/30 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
                 </form>
             </div>
         </div>
     </aside>
 
-    <!-- Content Area -->
+    <!-- ==========================================
+         AREA KONTEN UTAMA
+    =========================================== -->
     <main class="flex-1 p-8 overflow-auto">
 
-        <!-- Header Bar -->
+        <!-- Header Halaman -->
         <header class="flex justify-between items-center mb-8 pb-4 border-b border-slate-200/80">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 capitalize">{{ str_replace('_', ' ', $tab) }}</h1>
@@ -78,7 +89,7 @@
             </div>
         </header>
 
-        <!-- Flash Messages -->
+        <!-- Notifikasi Sukses / Pesan Flash -->
         @if(session('success'))
             <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm">
                 <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -86,19 +97,22 @@
             </div>
         @endif
 
-        {{-- TAB 1: MASTER DATA --}}
+        <!-- ==========================================
+             [SECTION 1] TAB: MASTER DATA
+        =========================================== -->
         @if($tab === 'master')
         <div class="space-y-6 max-w-6xl">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
-                <!-- Master Barang Card -->
+                <!-- Card Master Barang BMN -->
                 <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-bold text-base text-slate-900">Master Barang BMN</h2>
                         <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-medium">{{ $masterBarang->count() }} Items</span>
                     </div>
 
-                   @if($role === 'Reviewer (Tim BMN)' && $pb->status === 'diproses')
+                    <!-- Form Tambah Barang (Khusus Role Reviewer) -->
+                    @if($role === 'Reviewer (Tim BMN)')
                     <form action="{{ route('bmn.barang.tambah') }}" method="POST" class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3 mb-5">
                         @csrf
                         <div class="grid grid-cols-2 gap-3">
@@ -133,6 +147,7 @@
                     </form>
                     @endif
 
+                    <!-- Tabel Daftar Master Barang -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-y border-slate-200">
@@ -173,13 +188,14 @@
                     </div>
                 </div>
 
-                <!-- Master Buku Card -->
+                <!-- Card Master Buku PAUDPEDIA -->
                 <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="font-bold text-base text-slate-900">Buku PAUDPEDIA</h2>
                         <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md font-medium">{{ $masterBuku->count() }} Titles</span>
                     </div>
 
+                    <!-- Form Tambah Buku (Khusus Role Reviewer) -->
                     @if($role === 'Reviewer (Tim BMN)')
                     <form action="{{ route('bmn.buku.tambah') }}" method="POST" class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3 mb-5">
                         @csrf
@@ -199,6 +215,7 @@
                     </form>
                     @endif
 
+                    <!-- Tabel Daftar Master Buku -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-y border-slate-200">
@@ -239,9 +256,13 @@
         </div>
         @endif
 
-        {{-- TAB 2: PEMINJAMAN --}}
+        <!-- ==========================================
+             [SECTION 2] TAB: PEMINJAMAN
+        =========================================== -->
         @if($tab === 'peminjaman')
         <div class="space-y-6 max-w-5xl">
+            
+            <!-- Form Pengajuan Peminjaman (Khusus Role Pegawai) -->
             @if($role === 'Pegawai')
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-4">Form Pengajuan Peminjaman BMN</h2>
@@ -249,7 +270,7 @@
                     @csrf
                     <div>
                         <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Nama Pemohon</label>
-                        <input name="pegawai" value="Budi" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                        <input name="pegawai" value="{{ Auth::user()->name }}" readonly class="w-full border border-slate-300 bg-slate-100 rounded-lg p-2 text-xs focus:outline-none" required>
                     </div>
                     <div>
                         <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Pilih Barang BMN</label>
@@ -272,6 +293,7 @@
             </div>
             @endif
 
+            <!-- List Transaksi Peminjaman -->
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-4">Daftar Transaksi Peminjaman</h2>
                 <div class="space-y-3">
@@ -287,6 +309,7 @@
                                 {{ str_replace('_', ' ', $l->status) }}
                             </span>
 
+                            <!-- Aksi Reviewer (Proses Review) -->
                             @if($role === 'Reviewer (Tim BMN)' && $l->status === 'menunggu_review')
                                 <form action="{{ route('bmn.peminjaman.review', $l->id) }}" method="POST">
                                     @csrf @method('PATCH')
@@ -294,6 +317,7 @@
                                 </form>
                             @endif
 
+                            <!-- Aksi Approver (Setujui / Tolak) -->
                             @if($role === 'Approver (Kasubag TU)' && $l->status === 'menunggu_approval')
                                 <form action="{{ route('bmn.peminjaman.approve', $l->id) }}" method="POST" class="flex gap-1.5">
                                     @csrf @method('PATCH')
@@ -311,7 +335,9 @@
         </div>
         @endif
 
-        {{-- TAB 3: PENGEMBALIAN --}}
+        <!-- ==========================================
+             [SECTION 3] TAB: PENGEMBALIAN
+        =========================================== -->
         @if($tab === 'pengembalian')
         <div class="space-y-6 max-w-5xl">
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
@@ -327,12 +353,16 @@
                             <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-blue-50 text-blue-700 border border-blue-200">
                                 {{ str_replace('_', ' ', $l->status) }}
                             </span>
+
+                            <!-- Aksi Pegawai (Ajukan Pengembalian) -->
                             @if($role === 'Pegawai' && $l->status === 'dipinjam')
                                 <form action="{{ route('bmn.pengembalian.ajukan', $l->id) }}" method="POST">
                                     @csrf @method('PATCH')
                                     <button class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all">Ajukan Pengembalian</button>
                                 </form>
                             @endif
+
+                            <!-- Aksi Reviewer (Rilis Pengembalian / Terbit BAST) -->
                             @if($role === 'Reviewer (Tim BMN)' && $l->status === 'menunggu_rilis_pengembalian')
                                 <form action="{{ route('bmn.pengembalian.rilis', $l->id) }}" method="POST">
                                     @csrf @method('PATCH')
@@ -349,9 +379,13 @@
         </div>
         @endif
 
-        {{-- TAB 4: PERBAIKAN --}}
+        <!-- ==========================================
+             [SECTION 4] TAB: PERBAIKAN
+        =========================================== -->
         @if($tab === 'perbaikan')
         <div class="space-y-6 max-w-5xl">
+            
+            <!-- Form Lapor Rusak / Perbaikan (Khusus Role Pegawai) -->
             @if($role === 'Pegawai')
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-4">Laporkan Barang Rusak / Perbaikan</h2>
@@ -374,6 +408,7 @@
             </div>
             @endif
 
+            <!-- List Pengajuan Perbaikan -->
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-4">Daftar Pengajuan Perbaikan</h2>
                 <div class="space-y-3">
@@ -387,6 +422,8 @@
                             <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-slate-200 text-slate-700">
                                 {{ str_replace('_', ' ', $p->status) }}
                             </span>
+
+                            <!-- Aksi Keputusan Reviewer -->
                             @if($role === 'Reviewer (Tim BMN)' && $p->status === 'menunggu_reviewer')
                                 <form action="{{ route('bmn.perbaikan.putuskan', $p->id) }}" method="POST" class="flex gap-1.5">
                                     @csrf @method('PATCH')
@@ -394,6 +431,8 @@
                                     <button name="bisa_diperbaiki" value="0" class="bg-rose-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium">Rusak Final</button>
                                 </form>
                             @endif
+
+                            <!-- Aksi Tandai Selesai Reviewer -->
                             @if($role === 'Reviewer (Tim BMN)' && $p->status === 'proses')
                                 <form action="{{ route('bmn.perbaikan.selesai', $p->id) }}" method="POST">
                                     @csrf @method('PATCH')
@@ -410,9 +449,13 @@
         </div>
         @endif
 
-        {{-- TAB 5: PENGAJUAN BUKU (STEP 4) --}}
+        <!-- ==========================================
+             [SECTION 5] TAB: PENGAJUAN BUKU
+        =========================================== -->
         @if($tab === 'buku')
         <div class="space-y-6 max-w-5xl">
+            
+            <!-- Form Pengajuan Buku PAUDPEDIA (Khusus Role Pegawai) -->
             @if($role === 'Pegawai')
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-4">Form Pengajuan Buku PAUDPEDIA</h2>
@@ -421,7 +464,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <div>
                             <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Nama Pemohon</label>
-                            <input name="pemohon" value="Budi" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                            <input name="pemohon" value="{{ Auth::user()->name }}" readonly class="w-full border border-slate-300 bg-slate-100 rounded-lg p-2 text-xs focus:outline-none" required>
                         </div>
                         <div>
                             <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Judul Buku</label>
@@ -444,7 +487,7 @@
                         </div>
                     </div>
 
-                    <!-- Input Alamat (Otomatis Muncul jika COD dipilih) -->
+                    <!-- Input Alamat Kirim (Dynamic Toggle JS) -->
                     <div id="alamatContainer" class="hidden">
                         <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Alamat Pengiriman (Khusus COD)</label>
                         <textarea name="alamat" id="inputAlamat" rows="2" placeholder="Masukkan alamat lengkap tujuan pengiriman..." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
@@ -474,6 +517,7 @@
             </div>
             @endif
 
+            <!-- List Transaksi Pengajuan Buku -->
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-4">Daftar Pengajuan Buku</h2>
                 <div class="space-y-3">
@@ -483,9 +527,21 @@
                             <div class="text-sm font-semibold text-slate-900">{{ $pb->pemohon ?? 'Pegawai' }}</div>
                             <div class="text-xs text-slate-600 font-medium mt-0.5">Buku: {{ $pb->buku->judul ?? '-' }} ({{ $pb->jumlah }} Eksemplar)</div>
                             <div class="text-xs text-slate-500 mt-0.5">Metode: <span class="uppercase font-semibold text-blue-600">{{ $pb->metode }}</span></div>
+                            
+                            <!-- Alamat Pengiriman -->
                             @if($pb->metode === 'kirim' && $pb->alamat)
                                 <div class="text-xs text-slate-500 bg-slate-100 p-2 rounded-md mt-1.5 border border-slate-200/60">
                                     <strong>Alamat Kirim:</strong> {{ $pb->alamat }}
+                                </div>
+                            @endif
+
+                            <!-- Display Bukti Resi / Foto BAST -->
+                            @if($pb->foto_resi)
+                                <div class="mt-2.5">
+                                    <span class="text-[10px] font-bold text-slate-500 block mb-1">Bukti Resi / BAST:</span>
+                                    <a href="{{ asset('storage/' . $pb->foto_resi) }}" target="_blank">
+                                        <img src="{{ asset('storage/' . $pb->foto_resi) }}" class="w-32 h-20 object-cover rounded-lg border border-slate-200 hover:opacity-90 transition-all shadow-sm">
+                                    </a>
                                 </div>
                             @endif
                         </div>
@@ -493,16 +549,21 @@
                             <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-slate-200 text-slate-700">
                                 {{ str_replace('_', ' ', $pb->status) }}
                             </span>
-                            @if($role === 'Reviewer (Tim BMN)' && $pb->status === 'diprosos')
+
+                            <!-- Aksi Reviewer: Proses Pengajuan -->
+                            @if($role === 'Reviewer (Tim BMN)' && $pb->status === 'diproses')
                                 <form action="{{ route('bmn.buku.proses', $pb->id) }}" method="POST">
                                     @csrf @method('PATCH')
                                     <button class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-medium">Proses Pengajuan</button>
                                 </form>
                             @endif
+
+                            <!-- Aksi Reviewer: Upload Resi & Selesaikan BAST -->
                             @if($role === 'Reviewer (Tim BMN)' && in_array($pb->status, ['siap_ambil', 'siap_kirim']))
-                                <form action="{{ route('bmn.buku.selesai', $pb->id) }}" method="POST">
+                                <form action="{{ route('bmn.buku.selesai', $pb->id) }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
                                     @csrf @method('PATCH')
-                                    <button class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium">Selesaikan BAST / Resi</button>
+                                    <input type="file" name="foto_resi" accept="image/*" class="text-[10px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required>
+                                    <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0">Upload & Selesaikan</button>
                                 </form>
                             @endif
                         </div>
@@ -515,9 +576,13 @@
         </div>
         @endif
 
-        {{-- TAB 6: LAPORAN KEHILANGAN --}}
+        <!-- ==========================================
+             [SECTION 6] TAB: LAPORAN KEHILANGAN
+        =========================================== -->
         @if($tab === 'laporan')
         <div class="space-y-6 max-w-5xl">
+            
+            <!-- Form Lapor Kehilangan (Khusus Role Pegawai) -->
             @if($role === 'Pegawai')
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-3">Lapor Barang Pinjaman Hilang</h2>
@@ -537,6 +602,7 @@
             </div>
             @endif
 
+            <!-- List Laporan Kehilangan -->
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-base text-slate-900 mb-4">Daftar Laporan Kehilangan</h2>
                 <div class="space-y-3">
@@ -550,6 +616,8 @@
                             <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-rose-100 text-rose-800">
                                 {{ str_replace('_', ' ', $lh->status) }}
                             </span>
+
+                            <!-- Aksi Reviewer: ACC Kehilangan -->
                             @if($role === 'Reviewer (Tim BMN)' && $lh->status === 'menunggu_acc')
                                 <form action="{{ route('bmn.hilang.acc', $lh->id) }}" method="POST">
                                     @csrf @method('PATCH')

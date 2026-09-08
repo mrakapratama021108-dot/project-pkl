@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            // TAMBAHKAN KOLOM ROLE DI SINI:
+            $table->enum('role', ['Pegawai', 'Reviewer (Tim BMN)', 'Approver (Kasubag TU)'])->default('Pegawai');
             $table->rememberToken();
             $table->timestamps();
         });
