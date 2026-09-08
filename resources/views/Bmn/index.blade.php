@@ -53,16 +53,16 @@
             @endforeach
         </nav>
 
-        <!-- Profile User & Tombol Logout -->
+        <!-- Profile User Resmi & Tombol Logout -->
         <div class="p-4 border-t border-slate-800">
             <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/50 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-bold text-white">{{ Auth::user()->name }}</div>
-                    <div class="text-[10px] text-blue-400 font-semibold mt-0.5">{{ Auth::user()->role }}</div>
+                <div class="overflow-hidden pr-2">
+                    <div class="text-xs font-bold text-white truncate" title="{{ Auth::user()->name }}">{{ Auth::user()->name }}</div>
+                    <div class="text-[10px] text-blue-400 font-semibold mt-0.5 truncate">{{ Auth::user()->role }}</div>
                 </div>
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" class="shrink-0">
                     @csrf
-                    <button title="Keluar" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 p-1.5 rounded-lg border border-rose-500/30 transition-all">
+                    <button title="Keluar dari Sistem" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 p-1.5 rounded-lg border border-rose-500/30 transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     </button>
                 </form>
@@ -75,16 +75,23 @@
     =========================================== -->
     <main class="flex-1 p-8 overflow-auto">
 
-        <!-- Header Halaman -->
+        <!-- Header Halaman Resmi dengan Indicator Role -->
         <header class="flex justify-between items-center mb-8 pb-4 border-b border-slate-200/80">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 capitalize">{{ str_replace('_', ' ', $tab) }}</h1>
-                <p class="text-sm text-slate-500 mt-0.5">Kelola seluruh transaksi operasional inventaris BMN dengan cepat dan transparan.</p>
+                <p class="text-sm text-slate-500 mt-0.5">Sistem Informasi Pengelolaan Barang Milik Negara Direktorat PAUD.</p>
             </div>
             <div class="flex items-center gap-3">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                    <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-                    Role Active: {{ $role }}
+                <!-- Tanggal Hari Ini -->
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-slate-200 shadow-sm">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    {{ now()->translatedFormat('d F Y') }}
+                </span>
+
+                <!-- Badge Role Akses Aktif -->
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-100 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Hak Akses: {{ $role }}
                 </span>
             </div>
         </header>
@@ -341,16 +348,27 @@
         @if($tab === 'pengembalian')
         <div class="space-y-6 max-w-5xl">
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
-                <h2 class="font-bold text-base text-slate-900 mb-4">Daftar Pengembalian Barang</h2>
+                <h2 class="font-bold text-base text-slate-900 mb-4">Daftar & Riwayat Pengembalian Barang</h2>
                 <div class="space-y-3">
-                    @forelse($peminjaman->whereIn('status', ['dipinjam', 'menunggu_rilis_pengembalian']) as $l)
+                    @forelse($peminjaman->whereIn('status', ['dipinjam', 'menunggu_rilis_pengembalian', 'selesai']) as $l)
                     <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all">
                         <div>
                             <div class="text-sm font-semibold text-slate-900">{{ $l->pegawai }}</div>
                             <div class="text-xs text-slate-500 mt-0.5">Barang: <span class="font-medium text-slate-700">{{ $l->jumlah }}x {{ $l->barang->nama_barang }}</span></div>
+                            
+                            <!-- Keterangan Kondisi Saat Dikembalikan -->
+                            @if($l->status === 'selesai' && $l->kondisi_kembali)
+                                <div class="mt-2 text-xs p-2 rounded-lg border {{ $l->kondisi_kembali === 'Baik' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800' }}">
+                                    <span class="font-bold">Kondisi Pengembalian:</span> {{ $l->kondisi_kembali }}
+                                    @if($l->catatan_kembali)
+                                        <br><span class="font-medium">Catatan Reviewer:</span> "{{ $l->catatan_kembali }}"
+                                    @endif
+                                </div>
+                            @endif
                         </div>
+
                         <div class="flex items-center gap-3">
-                            <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                            <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md {{ $l->status === 'selesai' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-50 text-blue-700 border border-blue-200' }}">
                                 {{ str_replace('_', ' ', $l->status) }}
                             </span>
 
@@ -362,17 +380,45 @@
                                 </form>
                             @endif
 
-                            <!-- Aksi Reviewer (Rilis Pengembalian / Terbit BAST) -->
+                            <!-- Aksi Reviewer (Rilis Pengembalian / Terbit BAST + Cek Kondisi) -->
                             @if($role === 'Reviewer (Tim BMN)' && $l->status === 'menunggu_rilis_pengembalian')
-                                <form action="{{ route('bmn.pengembalian.rilis', $l->id) }}" method="POST">
-                                    @csrf @method('PATCH')
-                                    <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all">Rilis & Terbit BAST</button>
-                                </form>
+                                <button type="button" onclick="document.getElementById('modalRilis{{ $l->id }}').showModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all">
+                                    Rilis & Cek Kondisi
+                                </button>
+
+                                <dialog id="modalRilis{{ $l->id }}" class="p-6 rounded-xl shadow-2xl backdrop:bg-slate-900/50 w-full max-w-md border border-slate-100">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="font-bold text-slate-800 text-sm">Cek Kondisi & Pengembalian</h3>
+                                        <form method="dialog">
+                                            <button class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
+                                        </form>
+                                    </div>
+                                    <form action="{{ route('bmn.pengembalian.rilis', $l->id) }}" method="POST" class="space-y-4">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div class="text-left">
+                                            <label class="block text-xs font-semibold text-slate-600 mb-1">Kondisi Barang Saat Dikembalikan</label>
+                                            <select name="kondisi_kembali" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" required>
+                                                <option value="Baik">Baik</option>
+                                                <option value="Rusak Ringan">Rusak Ringan</option>
+                                                <option value="Rusak Berat">Rusak Berat</option>
+                                            </select>
+                                        </div>
+                                        <div class="text-left">
+                                            <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan Pengembalian</label>
+                                            <textarea name="catatan_kembali" rows="3" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: Unit lecet/layar retak"></textarea>
+                                        </div>
+                                        <div class="flex justify-end gap-2 pt-2">
+                                            <button type="button" onclick="document.getElementById('modalRilis{{ $l->id }}').close()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-medium">Batal</button>
+                                            <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition-all">Simpan & Rilis BAST</button>
+                                        </div>
+                                    </form>
+                                </dialog>
                             @endif
                         </div>
                     </div>
                     @empty
-                    <p class="text-center py-6 text-xs text-slate-400 italic">Tidak ada barang yang sedang dipinjam.</p>
+                    <p class="text-center py-6 text-xs text-slate-400 italic">Tidak ada pengembalian yang diproses.</p>
                     @endforelse
                 </div>
             </div>

@@ -41,6 +41,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/bmn/buku/{id}/hapus', [BmnController::class, 'hapusBuku'])->name('bmn.buku.hapus');
         Route::patch('/bmn/peminjaman/{id}/review', [BmnController::class, 'reviewPeminjaman'])->name('bmn.peminjaman.review');
         Route::patch('/bmn/pengembalian/{id}/rilis', [BmnController::class, 'rilisPengembalian'])->name('bmn.pengembalian.rilis');
+        
+        // ROUTE PENGEMBALIAN BARANG
+        Route::post('/bmn/peminjaman/{id}/kembalikan', [BmnController::class, 'kembalikanBarang'])->name('bmn.peminjaman.kembalikan');
+
         Route::patch('/bmn/perbaikan/{id}/putuskan', [BmnController::class, 'putuskanPerbaikan'])->name('bmn.perbaikan.putuskan');
         Route::patch('/bmn/perbaikan/{id}/selesai', [BmnController::class, 'selesaikanPerbaikan'])->name('bmn.perbaikan.selesai');
         Route::patch('/bmn/buku/{id}/proses', [BmnController::class, 'prosesPengajuanBuku'])->name('bmn.buku.proses');
