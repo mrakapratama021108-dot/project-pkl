@@ -42,6 +42,7 @@
                     'perbaikan' => ['label' => 'Perbaikan', 'icon' => 'M11 4a2 2 0 114 0v1a2 2 0 01-2 2h-1v1a1 1 0 01-1 1h-2a1 1 0 01-1-1v-1H7a2 2 0 01-2-2V4a2 2 0 114 0v1h2V4z'],
                     'buku' => ['label' => 'Pengajuan Buku', 'icon' => 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
                     'laporan' => ['label' => 'Laporan Kehilangan', 'icon' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
+                    'laporan_6bulan' => ['label' => 'Laporan 6 Bulanan', 'icon' => 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
                 ];
             @endphp
             @foreach($tabs as $key => $item)
@@ -496,7 +497,7 @@
         @endif
 
         <!-- ==========================================
-             [SECTION 5] TAB: PENGAJUAN BUKU
+             [SECTION 5] TAB: PENGAJUAN BUKU (SESUAI FLOWCHART)
         =========================================== -->
         @if($tab === 'buku')
         <div class="space-y-6 max-w-5xl">
@@ -504,49 +505,108 @@
             <!-- Form Pengajuan Buku PAUDPEDIA (Khusus Role Pegawai) -->
             @if($role === 'Pegawai')
             <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
-                <h2 class="font-bold text-base text-slate-900 mb-4">Form Pengajuan Buku PAUDPEDIA</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-base text-slate-900">Form Pengajuan Buku PAUDPEDIA</h2>
+                    <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-semibold border border-blue-200">
+                        Aturan: Statis 2 Eksemplar / Set
+                    </span>
+                </div>
+
                 <form action="{{ route('bmn.buku.ajukan') }}" method="POST" class="space-y-4">
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    
+                    <!-- Baris 1: Identitas Pemohon & Peran -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Nama Pemohon</label>
-                            <input name="pemohon" value="{{ Auth::user()->name }}" readonly class="w-full border border-slate-300 bg-slate-100 rounded-lg p-2 text-xs focus:outline-none" required>
-                        </div>
+                    <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Nama Pemohon</label>
+                     <input type="text" name="pemohon" value="{{ Auth::user()->name }}" placeholder="Masukkan nama pemohon" class="w-full border border-slate-300 bg-white rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                    </div>
                         <div>
-                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Judul Buku</label>
-                            <select name="buku_id" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
-                                @foreach($masterBuku->where('stok', '>', 0) as $bk)
-                                    <option value="{{ $bk->id }}">{{ $bk->judul }} (Stok: {{ $bk->stok }})</option>
-                                @endforeach
+                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Status Pemohon</label>
+                            <select name="status_pemohon" id="statusPemohon" onchange="toggleGuruInput()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="pegawai">Staf / Pegawai Internal</option>
+                                <option value="guru">Guru / Perwakilan Satuan Pendidikan</option>
                             </select>
                         </div>
                         <div>
                             <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Jumlah Eksemplar</label>
-                            <input type="number" name="jumlah" value="1" min="1" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                            <input type="number" name="jumlah" value="2" readonly class="w-full border border-slate-200 bg-slate-100 font-bold text-slate-700 rounded-lg p-2 text-xs focus:outline-none" title="Jumlah statis 2 eksemplar per pengajuan">
+                        </div>
+                    </div>
+
+                    <!-- Input Khusus Guru / Satuan Pendidikan (Dynamic Toggle) -->
+                    <div id="guruContainer" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/60 border border-amber-200/80 rounded-xl">
+                        <div>
+                            <label class="text-[11px] font-semibold text-amber-900 mb-1 block">NPSN (Nomor Pokok Sekolah Nasional)</label>
+                            <input name="npsn" id="inputNpsn" placeholder="Masukkan 8 digit NPSN" class="w-full border border-amber-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white">
                         </div>
                         <div>
-                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Metode Pengambilan</label>
-                            <select name="metode" id="metodeBuku" onchange="toggleAlamatInput()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                <option value="ambil">Ambil di Kantor</option>
-                                <option value="kirim">Dikirim (COD)</option>
-                            </select>
+                            <label class="text-[11px] font-semibold text-amber-900 mb-1 block">Nama Satuan Pendidikan / Sekolah</label>
+                            <input name="satuan_pendidikan" id="inputSatuan" placeholder="Contoh: TK Negeri Pembina 01" class="w-full border border-amber-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white">
                         </div>
                     </div>
 
-                    <!-- Input Alamat Kirim (Dynamic Toggle JS) -->
-                    <div id="alamatContainer" class="hidden">
-                        <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Alamat Pengiriman (Khusus COD)</label>
-                        <textarea name="alamat" id="inputAlamat" rows="2" placeholder="Masukkan alamat lengkap tujuan pengiriman..." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    <!-- Baris 2: Multi-Pilih Judul Buku (Pilih Banyak Judul sekaligus) -->
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Pilih Judul Buku (Bisa pilih lebih dari 1 judul dengan stok > 0)</label>
+                        <div class="border border-slate-300 rounded-xl p-3 max-h-36 overflow-y-auto bg-slate-50 space-y-2">
+                            @forelse($masterBuku->where('stok', '>', 0) as $bk)
+                                <label class="flex items-center gap-2.5 bg-white p-2 rounded-lg border border-slate-200 hover:border-blue-400 cursor-pointer transition-all text-xs">
+                                    <input type="checkbox" name="buku_ids[]" value="{{ $bk->id }}" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                    <span class="font-medium text-slate-800 flex-1">{{ $bk->judul }}</span>
+                                    <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded">Stok: {{ $bk->stok }}</span>
+                                </label>
+                            @empty
+                                <p class="text-xs text-slate-400 italic text-center py-2">Tidak ada stok buku yang tersedia saat ini.</p>
+                            @endforelse
+                        </div>
                     </div>
 
-                    <div class="flex justify-end">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs py-2.5 px-6 rounded-lg shadow-md shadow-blue-600/20 transition-all">
-                            Ajukan Buku
+                    <!-- Baris 3: Metode Pengambilan & Tanggal Estimasi -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Metode Penerimaan Barang</label>
+                            <select name="metode" id="metodeBuku" onchange="toggleAlamatInput()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="ambil">Diambil di Kantor</option>
+                                <option value="kirim">Pengiriman COD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Tanggal Estimasi Pengambilan / Pengiriman</label>
+                            <input type="date" name="tanggal_estimasi" min="{{ date('Y-m-d') }}" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" required>
+                        </div>
+                    </div>
+
+                    <!-- Input Alamat Kirim (COD) -->
+                    <div id="alamatContainer" class="hidden">
+                        <label class="text-[11px] font-semibold text-slate-500 mb-1 block">Alamat Pengiriman Lengkap (Khusus COD)</label>
+                        <textarea name="alamat" id="inputAlamat" rows="2" placeholder="Masukkan alamat lengkap pengiriman buku..." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-6 rounded-xl shadow-md shadow-blue-600/20 transition-all">
+                            Kirim Pengajuan Buku
                         </button>
                     </div>
                 </form>
 
                 <script>
+                    function toggleGuruInput() {
+                        const status = document.getElementById('statusPemohon').value;
+                        const container = document.getElementById('guruContainer');
+                        const npsn = document.getElementById('inputNpsn');
+                        const satuan = document.getElementById('inputSatuan');
+                        if (status === 'guru') {
+                            container.classList.remove('hidden');
+                            npsn.setAttribute('required', 'required');
+                            satuan.setAttribute('required', 'required');
+                        } else {
+                            container.classList.add('hidden');
+                            npsn.removeAttribute('required');
+                            satuan.removeAttribute('required');
+                        }
+                    }
+
                     function toggleAlamatInput() {
                         const metode = document.getElementById('metodeBuku').value;
                         const container = document.getElementById('alamatContainer');
@@ -571,17 +631,23 @@
                     <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200 transition-all">
                         <div>
                             <div class="text-sm font-semibold text-slate-900">{{ $pb->pemohon ?? 'Pegawai' }}</div>
-                            <div class="text-xs text-slate-600 font-medium mt-0.5">Buku: {{ $pb->buku->judul ?? '-' }} ({{ $pb->jumlah }} Eksemplar)</div>
-                            <div class="text-xs text-slate-500 mt-0.5">Metode: <span class="uppercase font-semibold text-blue-600">{{ $pb->metode }}</span></div>
+                            @if($pb->npsn)
+                                <div class="text-[11px] text-amber-700 font-medium mt-0.5">NPSN: {{ $pb->npsn }} - {{ $pb->satuan_pendidikan }}</div>
+                            @endif
+                            <div class="text-xs text-slate-600 font-medium mt-1">Buku: {{ $pb->buku->judul ?? '-' }} ({{ $pb->jumlah }} Eksemplar)</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">
+                                Metode: <span class="uppercase font-semibold text-blue-600">{{ $pb->metode }}</span> 
+                                @if($pb->tanggal_estimasi)
+                                    • Est. Tanggal: <span class="font-medium text-slate-700">{{ \Carbon\Carbon::parse($pb->tanggal_estimasi)->translatedFormat('d F Y') }}</span>
+                                @endif
+                            </div>
                             
-                            <!-- Alamat Pengiriman -->
                             @if($pb->metode === 'kirim' && $pb->alamat)
                                 <div class="text-xs text-slate-500 bg-slate-100 p-2 rounded-md mt-1.5 border border-slate-200/60">
                                     <strong>Alamat Kirim:</strong> {{ $pb->alamat }}
                                 </div>
                             @endif
 
-                            <!-- Display Bukti Resi / Foto BAST -->
                             @if($pb->foto_resi)
                                 <div class="mt-2.5">
                                     <span class="text-[10px] font-bold text-slate-500 block mb-1">Bukti Resi / BAST:</span>
@@ -596,7 +662,6 @@
                                 {{ str_replace('_', ' ', $pb->status) }}
                             </span>
 
-                            <!-- Aksi Reviewer: Proses Pengajuan -->
                             @if($role === 'Reviewer (Tim BMN)' && $pb->status === 'diproses')
                                 <form action="{{ route('bmn.buku.proses', $pb->id) }}" method="POST">
                                     @csrf @method('PATCH')
@@ -604,7 +669,6 @@
                                 </form>
                             @endif
 
-                            <!-- Aksi Reviewer: Upload Resi & Selesaikan BAST -->
                             @if($role === 'Reviewer (Tim BMN)' && in_array($pb->status, ['siap_ambil', 'siap_kirim']))
                                 <form action="{{ route('bmn.buku.selesai', $pb->id) }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
                                     @csrf @method('PATCH')
@@ -675,6 +739,83 @@
                     @empty
                     <p class="text-center py-6 text-xs text-slate-400 italic">Belum ada laporan kehilangan.</p>
                     @endforelse
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- ==========================================
+             [SECTION 7] TAB: LAPORAN 6 BULANAN (SESUAI FLOWCHART)
+        =========================================== -->
+        @if($tab === 'laporan_6bulan')
+        <div class="space-y-6 max-w-5xl">
+            <div class="bg-white p-6 border border-slate-200/80 rounded-2xl shadow-sm">
+                <div class="mb-4">
+                    <h2 class="font-bold text-base text-slate-900">Pelaporan Periodik 6 Bulanan BMN</h2>
+                    <p class="text-xs text-slate-500 mt-1">Kewajiban peminjam untuk melaporkan status & kondisi fisik barang pinjaman BMN setiap 6 bulan sekali.</p>
+                </div>
+
+                <!-- Form Lapor Periodik (Role Pegawai) -->
+                @if($role === 'Pegawai')
+                <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-200/80 mb-6">
+                    <h3 class="text-xs font-bold text-blue-900 mb-2">Form Laporan Kondisi Barang Dipinjam</h3>
+                    <form action="#" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        @csrf
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-600 mb-1 block">Pilih Barang Pinjaman</label>
+                            <select name="peminjaman_id" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white" required>
+                                @forelse($peminjaman->where('status', 'dipinjam') as $p)
+                                    <option value="{{ $p->id }}">{{ $p->barang->nama_barang }} (Pinjam: {{ \Carbon\Carbon::parse($p->created_at)->format('d/m/Y') }})</option>
+                                @empty
+                                    <option value="">Tidak ada barang yang sedang dipinjam</option>
+                                @endforelse
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-600 mb-1 block">Kondisi Fisik Saat Ini</label>
+                            <select name="kondisi" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white" required>
+                                <option value="Baik">Baik & Berfungsi</option>
+                                <option value="Rusak Ringan">Rusak Ringan</option>
+                                <option value="Rusak Berat">Rusak Berat</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2 px-4 rounded-lg shadow-sm transition-all">
+                                Submit Laporan 6 Bulanan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                @endif
+
+                <!-- Tabel Riwayat Pelaporan 6 Bulanan -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-y border-slate-200">
+                            <tr>
+                                <th class="py-2.5 px-3">Peminjam</th>
+                                <th class="py-2.5 px-3">Barang BMN</th>
+                                <th class="py-2.5 px-3">Periode Laporan</th>
+                                <th class="py-2.5 px-3 text-center">Kondisi Fisik</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($peminjaman->where('status', 'dipinjam') as $l)
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="py-3 px-3 font-semibold text-slate-800">{{ $l->pegawai }}</td>
+                                <td class="py-3 px-3 text-slate-600">{{ $l->barang->nama_barang }}</td>
+                                <td class="py-3 px-3 text-slate-500">Semester 1 ({{ date('Y') }})</td>
+                                <td class="py-3 px-3 text-center">
+                                    <span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-md text-[10px]">
+                                        BAIK (TERVERIFIKASI)
+                                    </span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="text-center py-6 text-slate-400 italic">Belum ada riwayat laporan 6 bulanan.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

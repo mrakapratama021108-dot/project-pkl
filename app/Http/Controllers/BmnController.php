@@ -115,37 +115,6 @@ class BmnController extends Controller
         return back()->with('success', 'Keputusan approval berhasil disimpan!');
     }
 
-    // --- PENGEMBALIAN LOGIC ---
-    public function ajukanPengembalian($id)
-    {
-        Peminjaman::findOrFail($id)->update(['status' => 'menunggu_rilis_pengembalian']);
-        return back()->with('success', 'Pengajuan pengembalian dikirim!');
-    }
-
-    public function rilisPengembalian(Request $request, $id)
-    {
-        $request->validate([
-            'kondisi_kembali' => 'required|in:Baik,Rusak Ringan,Rusak Berat',
-            'catatan_kembali' => 'nullable|string',
-        ]);
-
-        $loan = Peminjaman::findOrFail($id);
-        
-        // 1. Tambah stok barang kembali
-        $barang = Barang::findOrFail($loan->barang_id);
-        $barang->increment('stok', $loan->jumlah);
-
-        // 2. Update status & catat kondisi barang saat dikembalikan
-        $loan->update([
-            'status' => 'selesai',
-            'tgl_pengembalian' => now(),
-            'kondisi_kembali' => $request->kondisi_kembali,
-            'catatan_kembali' => $request->catatan_kembali,
-        ]);
-
-        return back()->with('success', 'Barang dikembalikan & BAST terbit!');
-    }
-
     // --- PERBAIKAN LOGIC ---
     public function ajukanPerbaikan(Request $request)
     {
@@ -186,46 +155,31 @@ class BmnController extends Controller
     // --- PENGAJUAN BUKU LOGIC ---
     public function ajukanBuku(Request $request)
     {
-        PengajuanBuku::create([
-            'pemohon' => $request->pemohon ?? 'Pegawai',
-            'buku_id' => $request->buku_id,
-            'jumlah' => $request->jumlah,
-            'metode' => $request->metode,
-            'alamat' => $request->metode === 'kirim' ? $request->alamat : null,
-            'status' => 'diproses',
-        ]);
-        return back()->with('success', 'Pengajuan buku terkirim!');
-    }
-
-    public function prosesPengajuanBuku($id)
-    {
-        $p = PengajuanBuku::findOrFail($id);
-        Buku::findOrFail($p->buku_id)->decrement('stok', $p->jumlah);
-        
-        $p->update([
-            'status' => $p->metode === 'ambil' ? 'siap_ambil' : 'siap_kirim',
-        ]);
-
-        return back()->with('success', 'Pengajuan buku diproses!');
-    }
-
-    public function selesaikanPengajuanBuku(Request $request, $id)
-    {
         $request->validate([
-            'foto_resi' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'pemohon' => 'required|string',
+            'buku_ids' => 'required|array|min:1',
+            'metode' => 'required|in:ambil,kirim',
+            'tanggal_estimasi' => 'required|date',
+            'alamat' => 'nullable|string',
+            'npsn' => 'nullable|string',
+            'satuan_pendidikan' => 'nullable|string',
         ]);
 
-        $p = PengajuanBuku::findOrFail($id);
-        $data = ['status' => 'selesai'];
-
-        if ($request->hasFile('foto_resi')) {
-            $path = $request->file('foto_resi')->store('resi_buku', 'public');
-            $data['foto_resi'] = $path;
+        foreach ($request->buku_ids as $bukuId) {
+            PengajuanBuku::create([
+                'pemohon' => $request->pemohon,
+                'npsn' => $request->npsn,
+                'satuan_pendidikan' => $request->satuan_pendidikan,
+                'buku_id' => $bukuId,
+                'jumlah' => 2,
+                'metode' => $request->metode,
+                'tanggal_estimasi' => $request->tanggal_estimasi,
+                'alamat' => $request->metode === 'kirim' ? $request->alamat : null,
+                'status' => 'diproses',
+            ]);
         }
 
-        $p->update($data);
-
-        return back()->with('success', 'Pengajuan buku diselesaikan dan bukti resi/BAST berhasil diunggah!');
+        return back()->with('success', 'Pengajuan buku berhasil dikirimkan!');
     }
 
     // --- LAPORAN KEHILANGAN LOGIC ---
