@@ -24,6 +24,11 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware('auth')->group(function () {
     Route::get('/', [BmnController::class, 'index'])->name('bmn.index');
 
+    // ROUTE CETAK DOKUMEN & REKAP (Dapat diakses oleh semua user terautentikasi)
+    Route::get('/bmn/peminjaman/{id}/bast', [BmnController::class, 'cetakBastPeminjaman'])->name('bmn.peminjaman.bast');
+    Route::get('/bmn/pengembalian/{id}/bast', [BmnController::class, 'cetakBastPengembalian'])->name('bmn.pengembalian.bast');
+    Route::get('/bmn/laporan-6bulan/cetak', [BmnController::class, 'cetakLaporan6Bulan'])->name('bmn.laporan6bulan.cetak');
+
     // Khusus Pegawai
     Route::middleware([CheckRole::class . ':Pegawai'])->group(function () {
         Route::post('/bmn/peminjaman/ajukan', [BmnController::class, 'ajukanPeminjaman'])->name('bmn.peminjaman.ajukan');
@@ -31,6 +36,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/bmn/perbaikan/ajukan', [BmnController::class, 'ajukanPerbaikan'])->name('bmn.perbaikan.ajukan');
         Route::post('/bmn/buku/ajukan', [BmnController::class, 'ajukanBuku'])->name('bmn.buku.ajukan');
         Route::post('/bmn/hilang/{id}/laporkan', [BmnController::class, 'laporkanHilang'])->name('bmn.hilang.laporkan');
+        Route::post('/bmn/laporan-6bulan', [BmnController::class, 'simpanLaporan6Bulan'])->name('bmn.laporan6bulan.simpan');
     });
 
     // Khusus Reviewer (Tim BMN)
@@ -41,10 +47,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/bmn/buku/{id}/hapus', [BmnController::class, 'hapusBuku'])->name('bmn.buku.hapus');
         Route::patch('/bmn/peminjaman/{id}/review', [BmnController::class, 'reviewPeminjaman'])->name('bmn.peminjaman.review');
         Route::patch('/bmn/pengembalian/{id}/rilis', [BmnController::class, 'rilisPengembalian'])->name('bmn.pengembalian.rilis');
-        
-        // ROUTE PENGEMBALIAN BARANG
         Route::post('/bmn/peminjaman/{id}/kembalikan', [BmnController::class, 'kembalikanBarang'])->name('bmn.peminjaman.kembalikan');
-
         Route::patch('/bmn/perbaikan/{id}/putuskan', [BmnController::class, 'putuskanPerbaikan'])->name('bmn.perbaikan.putuskan');
         Route::patch('/bmn/perbaikan/{id}/selesai', [BmnController::class, 'selesaikanPerbaikan'])->name('bmn.perbaikan.selesai');
         Route::patch('/bmn/buku/{id}/proses', [BmnController::class, 'prosesPengajuanBuku'])->name('bmn.buku.proses');
